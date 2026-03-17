@@ -2,7 +2,7 @@
 /**
  * @devo-bmad-custom/squidhub — installer.js
  * Installs squid-master sidecar, review agent, and Squidhub module config
- * into the target project's _bmad/ directory.
+ * into the target project's _devo-bmad-custom/ directory.
  * Requires base @devo-bmad-custom/agent-orchestration to be installed first.
  */
 
@@ -21,7 +21,7 @@ async function install(opts) {
 
   const isUpdate = action === 'update';
   const projectRoot = path.resolve(directory);
-  const bmadDir = path.join(projectRoot, '_bmad');
+  const bmadDir = path.join(projectRoot, '_devo-bmad-custom');
   const chalk = (await import('chalk')).default;
 
   console.log(`\n${chalk.bold.cyan(isUpdate ? 'BMAD Squidhub Update' : 'BMAD Squidhub Install')}`);
@@ -29,7 +29,7 @@ async function install(opts) {
 
   // Guard — base package must be installed first
   if (!await fs.pathExists(bmadDir)) {
-    console.log(chalk.yellow('⚠  No _bmad/ found. Install the base package first:'));
+    console.log(chalk.yellow('⚠  No _devo-bmad-custom/ found. Install the base package first:'));
     console.log(`  ${chalk.cyan('npx @devo-bmad-custom/agent-orchestration')}\n`);
     process.exit(1);
   }
@@ -47,7 +47,7 @@ async function install(opts) {
     }
   }
 
-  // Copy all src/ files — route .claude/commands/ to project root, rest to _bmad/
+  // Copy all src/ files — route .claude/commands/ to project root, rest to _devo-bmad-custom/
   const files = await glob('**/*', { cwd: SRC_DIR, nodir: true });
   let copied = 0;
   let trackCommands = 0;
@@ -56,7 +56,7 @@ async function install(opts) {
     const src = path.join(SRC_DIR, rel);
     let dest;
     if (rel.startsWith('.claude/commands/')) {
-      // Slash commands go to project root .claude/commands/, not inside _bmad/
+      // Slash commands go to project root .claude/commands/, not inside _devo-bmad-custom/
       dest = path.join(projectRoot, rel);
     } else {
       dest = path.join(bmadDir, rel);
@@ -72,13 +72,13 @@ async function install(opts) {
   console.log(chalk.green(`  ✓ squidhub module config`));
   if (trackCommands > 0) console.log(chalk.green(`  ✓ ${trackCommands} /bmad-track-* slash commands → .claude/commands/`));
   console.log(`\n${chalk.bold.green('✓ Done!')} ${copied} files ${isUpdate ? 'updated' : 'installed'}.`);
-  console.log(`  Squidhub addon is ready at ${chalk.cyan('_bmad/')}\n`);
+  console.log(`  Squidhub addon is ready at ${chalk.cyan('_devo-bmad-custom/')}\n`);
 }
 
 async function status(opts) {
   const { directory = process.cwd() } = opts;
   const projectRoot = path.resolve(directory);
-  const bmadDir = path.join(projectRoot, '_bmad');
+  const bmadDir = path.join(projectRoot, '_devo-bmad-custom');
   const chalk = (await import('chalk')).default;
 
   const sidecarPath = path.join(bmadDir, '_memory', 'squid-master-sidecar', 'instructions.md');
