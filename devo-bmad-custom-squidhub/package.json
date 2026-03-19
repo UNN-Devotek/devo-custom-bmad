@@ -1,6 +1,6 @@
 {
   "name": "@devo-bmad-custom/squidhub",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "BMAD Squidhub Addon — squid-master orchestration agent, review workflows, and Squidhub-specific configurations",
   "keywords": [
     "bmad",

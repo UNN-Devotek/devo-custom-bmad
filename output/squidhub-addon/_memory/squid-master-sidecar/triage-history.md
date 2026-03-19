@@ -18,19 +18,6 @@ entries:
     actual_track: null
     shipped_clean: null
 
-  - session_id: "2026-03-17-applications-prd-review-c4f7"
-    date: "2026-03-17"
-    description: "Full [B] Review Track — applications branch, PRD + plans + full codebase implementation (159 files, 21K+ lines, epics 1-13)"
-    track: REVIEW
-    corrected_to: null
-    q1_scope: "159 files changed — backend models/routes/migrations, frontend components/types/hooks, Discord integration, 50+ story artifacts"
-    q2_risk: "N/A — review track, not feature track"
-    q3_reversibility: "N/A — review track"
-    branch: "applications"
-    linked_feedback_ids: []
-    actual_track: null
-    shipped_clean: null
-
   - session_id: "2026-03-10-wordle-session-persistence-b4e7"
     date: "2026-03-10"
     description: "Fix Wordle session timeout, add timeout indicator and persistent daily attempt storage"
