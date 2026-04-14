@@ -97,6 +97,7 @@ The installer (`lib/installer.js`) supports:
 - `npx @arcwright-ai/agent-orchestration` — project-level install (interactive)
 - `npx @arcwright-ai/agent-orchestration --global` — global install to `~/` config dirs
 - `npx @arcwright-ai/agent-orchestration --tools claude-code,kiro` — multi-IDE install
+- `npx @arcwright-ai/agent-orchestration update --global` — update existing global install
 
 **Cross-platform:** Windows (WSL2), Linux, macOS. WSL dual-home aware — terminal tools (Claude Code, Gemini) use Linux home, GUI IDEs (Kiro, Cursor, etc.) use Windows home.
 
@@ -122,6 +123,18 @@ The installer (`lib/installer.js`) supports:
 - `none` — do not modify `.gitignore`
 
 The installer writes a managed `# ─── Arcwright installation ───` block to `.gitignore`. On update, that block is replaced in-place. It never commits to git.
+
+**Global Install:**
+
+Global installs write to user-level config dirs (`~/.arcwright/`, `~/.claude/`, `~/.kiro/`). On WSL2, terminal tools (Claude Code, Gemini) go to Linux home; GUI IDEs (Kiro, Cursor, etc.) go to Windows home.
+
+| Target | Linux / macOS | Windows (WSL2) |
+|--------|---------------|----------------|
+| Core modules | `~/.arcwright/` | `~/.arcwright/` (WSL Linux home) |
+| Claude Code assets | `~/.claude/` | `~/.claude/` (WSL Linux home) |
+| Kiro assets | `~/.kiro/` | `/mnt/c/Users/<name>/.kiro/` |
+
+Global update reads `~/.arcwright/_config/manifest.yaml`, removes orphaned files, and preserves user overlays and `config.yaml`. On `update --yes --global`, prior choices for `--tools`, `--teams`, and `--docker-check` are restored from the manifest automatically.
 
 ## Module Reference
 
