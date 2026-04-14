@@ -31,6 +31,7 @@ cd packages/tmux-setup && npm publish --access public
   - `.agents/skills/` — 54+ skills (Claude Code format)
   - `.kiro/skills/` — same skills (Kiro IDE + CLI format)
   - `.kiro/steering/` — Kiro steering docs
+  - `.kiro/agents/` — Kiro agent JSON configs (auto-generated from `.claude/commands/` + specialist stubs)
   - `.claude/commands/arcwright-track-*.md` — slash commands
   - `tmux/` — tmux setup scripts
 - `@arcwright-ai/tmux-setup` — standalone tmux setup package:
@@ -76,9 +77,10 @@ node build/build.js
 Pipeline steps:
 1. `buildGenericPackage()` — copies `_arcwright/` modules + `.agents/skills/` → `src/`
 2. `buildKiroAssets()` — copies skills → `src/.kiro/skills/`, generates steering docs
-3. `bundleTrackCommands()` — copies `arcwright-track-*.md` → `src/.claude/commands/`
-4. `bundleTmuxSetup()` — copies tmux scripts → `src/tmux/`
-5. `verifyNoLeaks()` — scans for Squidhub content patterns, fails if found
+3. `bundleKiroAgents()` — generates `.kiro/agents/*.json` from `.claude/commands/*.md` + specialist stubs from `_arcwright/awm/agents/`
+4. `bundleTrackCommands()` — copies `arcwright-track-*.md` → `src/.claude/commands/`
+5. `bundleTmuxSetup()` — copies tmux scripts → `src/tmux/`
+6. `verifyNoLeaks()` — scans for Squidhub content patterns, fails if found
 
 ## Key Rules
 
@@ -86,6 +88,79 @@ Pipeline steps:
 - **`lib/` and `bin/` are permanent** — edit these for installer behavior changes
 - **No Squidhub content** — this repo is the generic package. The leak checker enforces this
 - **Skills are dual-format** — `.agents/skills/` SKILL.md files work for both Claude Code and Kiro (same frontmatter: `name`, `description`, `allowed-tools`)
+
+## Kiro CLI Rules
+
+Kiro CLI has its own agent format, tool names, and orchestration model. Follow these rules when adding or modifying anything that touches Kiro.
+
+**Agent format:**
+- Kiro agents are **JSON files** (`.kiro/agents/*.json`), not markdown. Schema: `{ name, description, prompt, tools, allowedTools, toolsSettings, resources, hooks, mcpServers }`
+- The `prompt` field is either inline text or a `file://` URI pointing to a prompt file
+- Skills are loaded via `"resources": ["skill://.kiro/skills/**/SKILL.md"]` — always include this on agents that need skill access
+- Agent filenames (without `.json`) become the agent name used in `/agent` and `subagent` tool `role` references
+
+**Tool names — Kiro uses different identifiers than Claude Code:**
+
+| Claude Code | Kiro CLI |
+|-------------|----------|
+| Read file | `fs_read` |
+| Write file | `fs_write` |
+| Bash | `execute_bash` |
+| Grep | `grep` |
+| Glob | `glob` |
+| Code intelligence | `code` |
+| Web search | `web_search` |
+| Web fetch | `web_fetch` |
+| Agent tool | `subagent` |
+| Knowledge | `knowledge` |
+| AWS | `use_aws` |
+| All built-in | `@builtin` |
+
+**Subagent orchestration:**
+- Kiro's `subagent` tool takes `{ task, stages: [{ name, role, prompt_template, depends_on, model }] }` — it's a DAG pipeline, not a single agent dispatch
+- The `role` field references a Kiro agent config name (e.g. `arcwright-dev`) — that agent must exist in `.kiro/agents/`
+- Stages with no `depends_on` run in parallel; dependent stages wait
+- Configure available agents via `toolsSettings.crew.availableAgents` in the orchestrator agent's JSON
+
+**tmux split-pane mode:**
+- Kiro CLI supports tmux workflows via `execute_bash` — spawn agents with `kiro-cli chat --trust-all-tools --agent <name> '<task>'`
+- `--trust-all-tools` is the Kiro equivalent of Claude's `--dangerously-skip-permissions` — always include it for spawned pane agents
+- The AGENT_SIGNAL protocol, message delivery verification, and pane close sequence from `tmux-protocol` skill apply identically
+- `--no-interactive` flag exists for headless/scripted usage
+
+**Build pipeline (`bundleKiroAgents()` in `build/build.js`):**
+- Reads `.claude/commands/*.md` and generates `.kiro/agents/*.json` — the build handles the format conversion
+- `adaptPromptForKiro()` rewrites prompts: `.agents/skills/` → `.kiro/skills/`, `$ARGUMENTS` → user message instruction, `claude --dangerously-skip-permissions` → `kiro-cli chat --trust-all-tools --agent`
+- Specialist agent stubs are auto-generated from `_arcwright/awm/agents/*.md` with `file://` prompt references
+- Track/team agents get a tmux addendum appended and `toolsSettings.crew` with all specialist agent names
+
+**Installer (`writeKiroConfig()` in `lib/installer.js`):**
+- Copies `.kiro/agents/*.json`, `.kiro/skills/`, `.kiro/steering/` — filters by `--no-teams` and `--docker-check` flags
+- Global installs go to `~/.kiro/` (or Windows home on WSL since Kiro IDE is a GUI app)
+- No hooks directory — Kiro hooks are defined inside agent JSON configs, not as files
+
+**When adding a new slash command:**
+1. Create the `.claude/commands/foo.md` as usual (Claude Code source of truth)
+2. Add the filename regex to `SHIPPED_COMMANDS` in `bundleKiroAgents()`
+3. Add a tool mapping entry in `KIRO_TOOLS_BY_PATTERN` with correct Kiro tool names
+4. The build will auto-generate `.kiro/agents/foo.json` with adapted prompts
+5. If the command needs the `subagent` tool, add it to the tool list
+
+**When adding a new specialist agent:**
+1. Create the agent `.md` file in `_arcwright/awm/agents/`
+2. The build auto-generates `.kiro/agents/arcwright-{slug}.json` from it
+3. Add the new agent name to `SPECIALIST_AGENTS` array in `bundleKiroAgents()` so it appears in `toolsSettings.crew.availableAgents`
+
+**When modifying skills:**
+- Skills in `.agents/skills/` are the single source of truth — the build copies them to `.kiro/skills/` unchanged
+- SKILL.md frontmatter (`name`, `description`) works for both Claude Code and Kiro
+- If a skill references `.agents/skills/` paths internally (cross-skill references), those paths will be correct for Claude Code but not Kiro — add a Kiro-specific note or use relative paths
+- If a skill has IDE-specific instructions (e.g. tmux spawning), add a clearly marked section for each IDE rather than replacing the existing one
+
+**When modifying workflow track skills:**
+- Always include both a tmux variant (split-pane) and a non-tmux variant (subagent pipeline)
+- The tmux variant uses `kiro-cli chat --trust-all-tools --agent` for Kiro, `claude --dangerously-skip-permissions` for Claude Code
+- The non-tmux variant should include a Kiro CLI `subagent` tool JSON example with `stages` and `depends_on`
 
 ## Installer Features
 
