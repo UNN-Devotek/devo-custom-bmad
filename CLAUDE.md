@@ -4,18 +4,18 @@ AI assistant instructions for the Arcwright agent workflow package.
 
 ## What This Repo Is
 
-This is the **Arcwright workshop** — the editing workspace and build pipeline for the `@arcwright/agent-orchestration` npm package. It produces distributable AI agent workflows, skills, and orchestration tools for multiple IDEs.
+This is the **Arcwright workshop** — the editing workspace and build pipeline for the `@arcwright-ai/agent-orchestration` npm package. It produces distributable AI agent workflows, skills, and orchestration tools for multiple IDEs.
 
-- **npm org:** `@arcwright`
+- **npm org:** `@arcwright-ai`
 - **GitHub:** https://github.com/UNN-Devotek/Arcwright-AI
-- **Published packages:** `@arcwright/agent-orchestration`, `@arcwright/tmux-setup`
+- **Published packages:** `@arcwright-ai/agent-orchestration`, `@arcwright-ai/tmux-setup`
 
 ## Publishing
 
 This is the **only** place packages are published from. The Squidhub repo keeps its Squidhub-specific content unpublished — it's just local overlay files, not a separate package.
 
 **First-time setup:**
-1. Register `@arcwright` npm org on npmjs.com
+1. Register `@arcwright-ai` npm org on npmjs.com
 2. Add npm auth token: `npm config set //registry.npmjs.org/:_authToken <token>`
 
 **To publish:**
@@ -26,14 +26,14 @@ cd packages/tmux-setup && npm publish --access public
 ```
 
 **What gets published:**
-- `@arcwright/agent-orchestration` — single package containing:
+- `@arcwright-ai/agent-orchestration` — single package containing:
   - `_arcwright/{awm,awb,core,_memory}/` — agent/workflow modules
   - `.agents/skills/` — 54+ skills (Claude Code format)
   - `.kiro/skills/` — same skills (Kiro IDE + CLI format)
   - `.kiro/steering/` — Kiro steering docs
   - `.claude/commands/arcwright-track-*.md` — slash commands
   - `tmux/` — tmux setup scripts
-- `@arcwright/tmux-setup` — standalone tmux setup package:
+- `@arcwright-ai/tmux-setup` — standalone tmux setup package:
   - Catppuccin theme, pane title sync, clipboard integration
   - Agent orchestration scripts, status bar widgets
   - CLI binary: `arcwright-tmux`
@@ -53,12 +53,12 @@ arcwright/
 ├── .agents/skills/          <- Skill library (54+ skills, SKILL.md format)
 ├── .claude/commands/        <- Slash commands (arcwright-track-*.md, arcwright-migrate.md)
 ├── packages/
-│   ├── agent-orchestration/ <- npm package (@arcwright/agent-orchestration)
+│   ├── agent-orchestration/ <- npm package (@arcwright-ai/agent-orchestration)
 │   │   ├── bin/arcwright.js  <- npx entry point
 │   │   ├── lib/              <- Installer, CLI, platform detection (EDIT THESE)
 │   │   ├── src/              <- Built output (NEVER edit — wiped on build)
 │   │   └── package.json
-│   └── tmux-setup/          <- npm package (@arcwright/tmux-setup)
+│   └── tmux-setup/          <- npm package (@arcwright-ai/tmux-setup)
 │       ├── bin/arcwright-tmux.js <- npx entry point
 │       ├── lib/              <- Installer, CLI (EDIT THESE)
 │       ├── src/tmux/         <- tmux config + scripts (EDIT THESE)
@@ -94,9 +94,9 @@ The installer (`lib/installer.js`) supports:
 **7 IDE platforms:** Claude Code, Kiro, Cursor, Windsurf, Cline, GitHub Copilot, Gemini
 
 **Install scopes:**
-- `npx @arcwright/agent-orchestration` — project-level install (interactive)
-- `npx @arcwright/agent-orchestration --global` — global install to `~/` config dirs
-- `npx @arcwright/agent-orchestration --tools claude-code,kiro` — multi-IDE install
+- `npx @arcwright-ai/agent-orchestration` — project-level install (interactive)
+- `npx @arcwright-ai/agent-orchestration --global` — global install to `~/` config dirs
+- `npx @arcwright-ai/agent-orchestration --tools claude-code,kiro` — multi-IDE install
 
 **Cross-platform:** Windows (WSL2), Linux, macOS. WSL dual-home aware — terminal tools (Claude Code, Gemini) use Linux home, GUI IDEs (Kiro, Cursor, etc.) use Windows home.
 
@@ -111,6 +111,6 @@ The installer (`lib/installer.js`) supports:
 
 ## Relationship to Squidhub
 
-This workshop is the **single publish source** for `@arcwright/agent-orchestration`.
+This workshop is the **single publish source** for `@arcwright-ai/agent-orchestration`.
 
 The Squidhub project keeps its own Squidhub-specific overlay files (squid-master persona, MCP templates, etc.) locally. These are **not published** — they sit on top of the installed Arcwright package for Squidhub's own use.
