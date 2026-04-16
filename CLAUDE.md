@@ -9,6 +9,24 @@ This is the **Arcwright workshop** — the editing workspace and build pipeline 
 - **npm org:** `@arcwright-ai`
 - **GitHub:** https://github.com/UNN-Devotek/Arcwright-AI
 - **Published packages:** `@arcwright-ai/agent-orchestration`, `@arcwright-ai/tmux-setup`
+- **Website:** `website/` — Vite + React site hosted at **arcwright.space** on Dokploy
+
+## Website — arcwright.space
+
+The `website/` subfolder is a Vite + React + TypeScript marketing/docs site deployed at **arcwright.space**.
+
+**Rule: keep both in sync.** Whenever you update:
+- `README.md` — the website auto-pulls live from GitHub on page load, but update `website/src/data/fallback.ts` if the content structure changes significantly
+- Track list, team catalog, or agent roster — also update the corresponding file in `website/src/data/`
+- Design or component changes — only in `website/src/`; never modify parent repo files
+
+**Deployment (Dokploy):**
+```bash
+cd website
+docker compose up -d   # or let Dokploy build from the Dockerfile
+```
+
+The `docker-compose.yml` includes Traefik labels for `arcwright.space` with automatic TLS via Let's Encrypt.
 
 ## Publishing
 
